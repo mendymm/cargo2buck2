@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/install-buck2@latest
-      - run: buck2 build //...
+      - run: buck2 run root//example-projects/simple-single-dep-bin:simple-single-dep-bin
