@@ -1,0 +1,10 @@
+[package]
+name = "cargo2buck2"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cargo = "0.91.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_starlark = "0.1.19"
+camino = "1.2.1"

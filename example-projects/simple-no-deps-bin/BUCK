@@ -1,0 +1,7 @@
+rust_binary(
+    name = "simple-no-deps-bin",
+    visibility = ["PUBLIC"],
+    srcs = glob(["src/*.rs"]),
+    edition = "2024",
+)
+

@@ -1,0 +1,9 @@
+[package]
+name = "workspace-bin"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+workspace-dep.workspace = true
+base64.workspace = true
+heck = "=0.5.0"
