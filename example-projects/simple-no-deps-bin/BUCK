@@ -3,5 +3,8 @@ rust_binary(
     visibility = ["PUBLIC"],
     srcs = glob(["src/*.rs"]),
     edition = "2024",
+    deps = [],
+    crate_root = "src/main.rs",
+    crate = "simple-no-deps-bin",
 )
 

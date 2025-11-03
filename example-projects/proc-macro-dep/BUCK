@@ -1,0 +1,229 @@
+http_archive(
+    name = "serde_derive-1.0.228.crate",
+    sha256 = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79",
+    strip_prefix = "serde_derive-1.0.228",
+    urls = ["https://static.crates.io/crates/serde_derive/1.0.228/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "serde_derive-1.0.228",
+    visibility = ["PUBLIC"],
+    srcs = [":serde_derive-1.0.228.crate"],
+    edition = "2021",
+    crate_root = "serde_derive-1.0.228.crate/src/lib.rs",
+    crate = "serde_derive",
+    proc_macro = True,
+    deps = [
+        ":proc-macro2-1.0.101",
+        ":quote-1.0.41",
+        ":syn-2.0.106",
+    ],
+)
+
+http_archive(
+    name = "serde_json-1.0.145.crate",
+    sha256 = "402a6f66d8c709116cf22f558eab210f5a50187f702eb4d7e5ef38d9a7f1c79c",
+    strip_prefix = "serde_json-1.0.145",
+    urls = ["https://static.crates.io/crates/serde_json/1.0.145/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "serde_json-1.0.145",
+    visibility = ["PUBLIC"],
+    srcs = [":serde_json-1.0.145.crate"],
+    edition = "2021",
+    crate_root = "serde_json-1.0.145.crate/src/lib.rs",
+    crate = "serde_json",
+    deps = [
+        ":itoa-1.0.15",
+        ":memchr-2.7.6",
+        ":ryu-1.0.20",
+        ":serde-1.0.228",
+        ":serde_core-1.0.228",
+    ],
+)
+
+http_archive(
+    name = "itoa-1.0.15.crate",
+    sha256 = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c",
+    strip_prefix = "itoa-1.0.15",
+    urls = ["https://static.crates.io/crates/itoa/1.0.15/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "itoa-1.0.15",
+    visibility = ["PUBLIC"],
+    srcs = [":itoa-1.0.15.crate"],
+    edition = "2018",
+    crate_root = "itoa-1.0.15.crate/src/lib.rs",
+    crate = "itoa",
+    deps = [],
+)
+
+http_archive(
+    name = "serde-1.0.228.crate",
+    sha256 = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e",
+    strip_prefix = "serde-1.0.228",
+    urls = ["https://static.crates.io/crates/serde/1.0.228/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "serde-1.0.228",
+    visibility = ["PUBLIC"],
+    srcs = [":serde-1.0.228.crate"],
+    edition = "2021",
+    crate_root = "serde-1.0.228.crate/src/lib.rs",
+    crate = "serde",
+    deps = [
+        ":serde_core-1.0.228",
+        ":serde_derive-1.0.228",
+    ],
+)
+
+http_archive(
+    name = "memchr-2.7.6.crate",
+    sha256 = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273",
+    strip_prefix = "memchr-2.7.6",
+    urls = ["https://static.crates.io/crates/memchr/2.7.6/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "memchr-2.7.6",
+    visibility = ["PUBLIC"],
+    srcs = [":memchr-2.7.6.crate"],
+    edition = "2021",
+    crate_root = "memchr-2.7.6.crate/src/lib.rs",
+    crate = "memchr",
+    deps = [],
+)
+
+rust_binary(
+    name = "proc-macro-dep",
+    visibility = ["PUBLIC"],
+    srcs = glob(["src/*.rs"]),
+    edition = "2024",
+    deps = [
+        ":serde-1.0.228",
+        ":serde_json-1.0.145",
+    ],
+    crate_root = "src/main.rs",
+    crate = "proc-macro-dep",
+)
+
+http_archive(
+    name = "ryu-1.0.20.crate",
+    sha256 = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f",
+    strip_prefix = "ryu-1.0.20",
+    urls = ["https://static.crates.io/crates/ryu/1.0.20/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "ryu-1.0.20",
+    visibility = ["PUBLIC"],
+    srcs = [":ryu-1.0.20.crate"],
+    edition = "2018",
+    crate_root = "ryu-1.0.20.crate/src/lib.rs",
+    crate = "ryu",
+    deps = [],
+)
+
+http_archive(
+    name = "serde_core-1.0.228.crate",
+    sha256 = "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad",
+    strip_prefix = "serde_core-1.0.228",
+    urls = ["https://static.crates.io/crates/serde_core/1.0.228/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "serde_core-1.0.228",
+    visibility = ["PUBLIC"],
+    srcs = [":serde_core-1.0.228.crate"],
+    edition = "2021",
+    crate_root = "serde_core-1.0.228.crate/src/lib.rs",
+    crate = "serde_core",
+    deps = [":serde_derive-1.0.228"],
+)
+
+http_archive(
+    name = "quote-1.0.41.crate",
+    sha256 = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1",
+    strip_prefix = "quote-1.0.41",
+    urls = ["https://static.crates.io/crates/quote/1.0.41/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "quote-1.0.41",
+    visibility = ["PUBLIC"],
+    srcs = [":quote-1.0.41.crate"],
+    edition = "2018",
+    crate_root = "quote-1.0.41.crate/src/lib.rs",
+    crate = "quote",
+    deps = [":proc-macro2-1.0.101"],
+)
+
+http_archive(
+    name = "unicode-ident-1.0.19.crate",
+    sha256 = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d",
+    strip_prefix = "unicode-ident-1.0.19",
+    urls = ["https://static.crates.io/crates/unicode-ident/1.0.19/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "unicode-ident-1.0.19",
+    visibility = ["PUBLIC"],
+    srcs = [":unicode-ident-1.0.19.crate"],
+    edition = "2018",
+    crate_root = "unicode-ident-1.0.19.crate/src/lib.rs",
+    crate = "unicode-ident",
+    deps = [],
+)
+
+http_archive(
+    name = "syn-2.0.106.crate",
+    sha256 = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6",
+    strip_prefix = "syn-2.0.106",
+    urls = ["https://static.crates.io/crates/syn/2.0.106/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "syn-2.0.106",
+    visibility = ["PUBLIC"],
+    srcs = [":syn-2.0.106.crate"],
+    edition = "2021",
+    crate_root = "syn-2.0.106.crate/src/lib.rs",
+    crate = "syn",
+    deps = [
+        ":proc-macro2-1.0.101",
+        ":quote-1.0.41",
+        ":unicode-ident-1.0.19",
+    ],
+)
+
+http_archive(
+    name = "proc-macro2-1.0.101.crate",
+    sha256 = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de",
+    strip_prefix = "proc-macro2-1.0.101",
+    urls = ["https://static.crates.io/crates/proc-macro2/1.0.101/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "proc-macro2-1.0.101",
+    visibility = ["PUBLIC"],
+    srcs = [":proc-macro2-1.0.101.crate"],
+    edition = "2021",
+    crate_root = "proc-macro2-1.0.101.crate/src/lib.rs",
+    crate = "proc-macro2",
+    deps = [":unicode-ident-1.0.19"],
+)
+

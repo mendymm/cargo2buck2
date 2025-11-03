@@ -1,9 +1,10 @@
-load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+# Download and extract the official Rust distribution tarball.
+load(":defs.bzl", "vendored_rust_toolchain")
 load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
 load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain")
-load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//toolchains:rust.bzl", "system_rust_toolchain")
+
 
 system_cxx_toolchain(
     name = "cxx",
@@ -32,17 +33,45 @@ system_python_bootstrap_toolchain(
 
 system_rust_toolchain(
     name = "rust",
-    default_edition = None,
-    doctests = True,
-    visibility = ["PUBLIC"],
+    visibility = ["PUBLIC"]
 )
 
-noop_test_toolchain(
-    name = "test",
-    visibility = ["PUBLIC"],
-)
 
-remote_test_execution_toolchain(
-    name = "remote_test_execution",
-    visibility = ["PUBLIC"],
-)
+# # Change version/triple as needed. This example is Linux x86_64.
+# remote_file(
+#     name = "rust_tar",
+#     url = "https://static.rust-lang.org/dist/2025-09-18/rust-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+#     sha256 = "bff8974f2d3ee6c0e6ac926b533f65bbdd3697d2c2b925bdae5f45b9eed10a67",
+#     out = "rust.tar.xz",
+# )
+
+# # Extract into a directory output. The official tarball has a top-level dir; strip it.
+
+
+# genrule(
+#     name = "rust_unpacked",
+#     srcs = [":rust_tar"],
+#     out = "rust",
+#     cmd = r"""
+# set -eu
+# mkdir -p "$OUT"
+# tar -xJf $SRCS -C "$OUT" --strip-components=1
+
+# # Wrapper beside the real rustc. Points to $OUT/rustc/bin/rustc and $OUT/rustc/lib.
+# cat >"$OUT/rustc/bin/rustc-buck" <<EOF
+# #!/usr/bin/env sh
+# set -eu
+# export LD_LIBRARY_PATH="$OUT/rustc/lib\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}"
+# exec "$OUT/rustc/bin/rustc" "\$@"
+# EOF
+# chmod +x "$OUT/rustc/bin/rustc-buck"
+# """,
+# )
+
+# # Expose a toolchain target named :rust that the default platform can use.
+# vendored_rust_toolchain(
+#     name = "rust",
+#     toolchain = ":rust_unpacked",
+#     rustc_target_triple = "x86_64-unknown-linux-gnu",
+#     visibility = ["PUBLIC"],
+# )

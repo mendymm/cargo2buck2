@@ -1,0 +1,24 @@
+load("exec_test.bzl", "exec_test")
+
+exec_test(
+    name = "simple-no-deps-bin",
+    bin = "//example-projects/simple-no-deps-bin:simple-no-deps-bin"
+)
+
+
+exec_test(
+    name = "simple-single-dep-bin",
+    bin = "//example-projects/simple-single-dep-bin:simple-single-dep-bin"
+)
+
+
+exec_test(
+    name = "basic-build-script",
+    bin = "//example-projects/basic-build-script:basic-build-script"
+)
+
+
+# exec_test(
+#     name = "simple-no-deps-bin",
+#     bin = "//example-projects/simple-no-deps-bin:simple-no-deps-bin"
+# )

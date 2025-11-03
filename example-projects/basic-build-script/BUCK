@@ -1,0 +1,50 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+
+rust_binary(
+    name = "basic-build-script",
+    visibility = ["PUBLIC"],
+    srcs = glob(["src/*.rs"]),
+    edition = "2024",
+    deps = [],
+    crate_root = "src/main.rs",
+    crate = "basic-build-script",
+    env = {
+        "OUT_DIR": "$(location :basic-build-script-build-script-run[out_dir])",
+    },
+    features = [
+        "default",
+        "raw_value",
+        "std",
+    ],
+    rustc_flags = ["@$(location :basic-build-script-build-script-run[rustc_flags])"],
+
+)
+
+rust_binary(
+    name = "basic-build-script-build-script-rule",
+    srcs = glob(["build.rs"]),
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    edition = "2024",
+    visibility = [],
+    env = {
+        "CARGO_CRATE_NAME": "ASD",
+        "CARGO_PKG_VERSION": "ADS"
+    }
+)
+
+
+
+
+
+buildscript_run(
+    name = "basic-build-script-build-script-run",
+    package_name = "serde_json",
+    buildscript_rule = ":basic-build-script-build-script-rule",
+    features = [
+        "default",
+        "raw_value",
+        "std",
+    ],
+    version = "0.1.0",
+)
