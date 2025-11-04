@@ -1,31 +1,3 @@
-load(
-    "@prelude//rust:cargo_buildscript.bzl",
-    "buildscript_run",
-)
-
-rust_binary(
-    name = "simple-single-dep-bin",
-    visibility = ["PUBLIC"],
-    srcs = glob(["src/*.rs"]),
-    edition = "2024",
-    deps = [":heck-0.5.0"],
-    crate_root = "src/main.rs",
-    crate = "simple-single-dep-bin",
-    features = [],
-    env = {
-        "CARGO_PKG_VERSION": "0.1.0",
-        "CARGO_PKG_VERSION_PATCH": "0",
-    },
-)
-
-http_archive(
-    name = "heck-0.5.0.crate",
-    sha256 = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea",
-    strip_prefix = "heck-0.5.0",
-    urls = ["https://static.crates.io/crates/heck/0.5.0/download"],
-    visibility = ["PUBLIC"],
-)
-
 rust_library(
     name = "heck-0.5.0",
     visibility = ["PUBLIC"],
@@ -36,8 +8,30 @@ rust_library(
     deps = [],
     features = [],
     env = {
+        "CARGO_PKG_NAME": "heck",
         "CARGO_PKG_VERSION": "0.5.0",
         "CARGO_PKG_VERSION_PATCH": "0",
     },
 )
-
+http_archive(
+    name = "heck-0.5.0.crate",
+    sha256 = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea",
+    strip_prefix = "heck-0.5.0",
+    urls = ["https://static.crates.io/crates/heck/0.5.0/download"],
+    visibility = ["PUBLIC"],
+)
+rust_binary(
+    name = "simple-single-dep-bin",
+    visibility = ["PUBLIC"],
+    srcs = glob(["src/*.rs"]),
+    edition = "2024",
+    deps = [":heck-0.5.0"],
+    crate_root = "src/main.rs",
+    crate = "simple-single-dep-bin",
+    features = [],
+    env = {
+        "CARGO_PKG_NAME": "simple-single-dep-bin",
+        "CARGO_PKG_VERSION": "0.1.0",
+        "CARGO_PKG_VERSION_PATCH": "0",
+    },
+)
