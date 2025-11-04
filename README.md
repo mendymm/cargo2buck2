@@ -1,9 +1,8 @@
 # [WIP] cargo2buck2
 
+A very much WIP tool that let's you use buck2 to build your rust projects without needing to write your own rules.
 
-
-A very much WIP tool that let's you use buck2 to build your rust projecs without needing to write your own rules.
-
+As a general rule, users should not need to care about the generated `BUCK` files, and their build cacheability should automagically improve!
 
 The main goals for this project are
 - Automaticlly generate BUILD files from existing `Cargo.toml`/`Cargo.lock` files.
@@ -29,3 +28,7 @@ The main goals for this project are
 - [x] Simple no dependency build-script
 - [x] Proc macro dependency bin
 - [ ] Simple workspace
+
+
+## Acknowledgements
+- dtolnay (for all your work on rust, the ecosystem, and buck2/reindeer)
