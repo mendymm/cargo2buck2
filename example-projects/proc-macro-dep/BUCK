@@ -1,3 +1,155 @@
+load(
+    "@prelude//rust:cargo_buildscript.bzl",
+    "buildscript_run",
+)
+
+rust_binary(
+    name = "proc-macro-dep",
+    visibility = ["PUBLIC"],
+    srcs = glob(["src/*.rs"]),
+    edition = "2024",
+    deps = [
+        ":serde-1.0.228",
+        ":serde_json-1.0.145",
+    ],
+    crate_root = "src/main.rs",
+    crate = "proc-macro-dep",
+    features = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "0",
+    },
+)
+
+http_archive(
+    name = "syn-2.0.106.crate",
+    sha256 = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6",
+    strip_prefix = "syn-2.0.106",
+    urls = ["https://static.crates.io/crates/syn/2.0.106/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "syn-2.0.106",
+    visibility = ["PUBLIC"],
+    srcs = [":syn-2.0.106.crate"],
+    edition = "2021",
+    crate_root = "syn-2.0.106.crate/src/lib.rs",
+    crate = "syn",
+    deps = [
+        ":proc-macro2-1.0.101",
+        ":quote-1.0.41",
+        ":unicode-ident-1.0.19",
+    ],
+    features = [
+        "clone-impls",
+        "derive",
+        "parsing",
+        "printing",
+        "proc-macro",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "106",
+    },
+)
+
+http_archive(
+    name = "quote-1.0.41.crate",
+    sha256 = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1",
+    strip_prefix = "quote-1.0.41",
+    urls = ["https://static.crates.io/crates/quote/1.0.41/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "quote-1.0.41",
+    visibility = ["PUBLIC"],
+    srcs = [":quote-1.0.41.crate"],
+    edition = "2018",
+    crate_root = "quote-1.0.41.crate/src/lib.rs",
+    crate = "quote",
+    deps = [":proc-macro2-1.0.101"],
+    features = ["proc-macro"],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "41",
+        "OUT_DIR": "$(location :quote-1.0.41-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :quote-1.0.41-build-script-run[rustc_flags])"],
+)
+
+rust_binary(
+    name = "quote-1.0.41-build-script-build",
+    visibility = ["PUBLIC"],
+    srcs = [":quote-1.0.41.crate"],
+    edition = "2018",
+    deps = [":proc-macro2-1.0.101"],
+    crate_root = "quote-1.0.41.crate/build.rs",
+    crate = "build_script_build",
+    features = ["proc-macro"],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "41",
+    },
+)
+
+buildscript_run(
+    name = "quote-1.0.41-build-script-run",
+    package_name = "quote",
+    buildscript_rule = ":quote-1.0.41-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "41",
+    },
+    features = ["proc-macro"],
+    version = "1.0.41",
+)
+
+http_archive(
+    name = "proc-macro2-1.0.101.crate",
+    sha256 = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de",
+    strip_prefix = "proc-macro2-1.0.101",
+    urls = ["https://static.crates.io/crates/proc-macro2/1.0.101/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "proc-macro2-1.0.101",
+    visibility = ["PUBLIC"],
+    srcs = [":proc-macro2-1.0.101.crate"],
+    edition = "2021",
+    crate_root = "proc-macro2-1.0.101.crate/src/lib.rs",
+    crate = "proc-macro2",
+    deps = [":unicode-ident-1.0.19"],
+    features = ["proc-macro"],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "101",
+        "OUT_DIR": "$(location :proc-macro2-1.0.101-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :proc-macro2-1.0.101-build-script-run[rustc_flags])"],
+)
+
+rust_binary(
+    name = "proc-macro2-1.0.101-build-script-build",
+    visibility = ["PUBLIC"],
+    srcs = [":proc-macro2-1.0.101.crate"],
+    edition = "2021",
+    deps = [":unicode-ident-1.0.19"],
+    crate_root = "proc-macro2-1.0.101.crate/build.rs",
+    crate = "build_script_build",
+    features = ["proc-macro"],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "101",
+    },
+)
+
+buildscript_run(
+    name = "proc-macro2-1.0.101-build-script-run",
+    package_name = "proc-macro2",
+    buildscript_rule = ":proc-macro2-1.0.101-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "101",
+    },
+    features = ["proc-macro"],
+    version = "1.0.101",
+)
+
 http_archive(
     name = "serde_derive-1.0.228.crate",
     sha256 = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79",
@@ -19,6 +171,171 @@ rust_library(
         ":quote-1.0.41",
         ":syn-2.0.106",
     ],
+    features = ["default"],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+    },
+)
+
+http_archive(
+    name = "memchr-2.7.6.crate",
+    sha256 = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273",
+    strip_prefix = "memchr-2.7.6",
+    urls = ["https://static.crates.io/crates/memchr/2.7.6/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "memchr-2.7.6",
+    visibility = ["PUBLIC"],
+    srcs = [":memchr-2.7.6.crate"],
+    edition = "2021",
+    crate_root = "memchr-2.7.6.crate/src/lib.rs",
+    crate = "memchr",
+    deps = [],
+    features = [
+        "alloc",
+        "std",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "6",
+    },
+)
+
+http_archive(
+    name = "serde-1.0.228.crate",
+    sha256 = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e",
+    strip_prefix = "serde-1.0.228",
+    urls = ["https://static.crates.io/crates/serde/1.0.228/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "serde-1.0.228",
+    visibility = ["PUBLIC"],
+    srcs = [":serde-1.0.228.crate"],
+    edition = "2021",
+    crate_root = "serde-1.0.228.crate/src/lib.rs",
+    crate = "serde",
+    deps = [
+        ":serde_core-1.0.228",
+        ":serde_derive-1.0.228",
+    ],
+    features = [
+        "default",
+        "derive",
+        "serde_derive",
+        "std",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+        "OUT_DIR": "$(location :serde-1.0.228-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :serde-1.0.228-build-script-run[rustc_flags])"],
+)
+
+rust_binary(
+    name = "serde-1.0.228-build-script-build",
+    visibility = ["PUBLIC"],
+    srcs = [":serde-1.0.228.crate"],
+    edition = "2021",
+    deps = [
+        ":serde_core-1.0.228",
+        ":serde_derive-1.0.228",
+    ],
+    crate_root = "serde-1.0.228.crate/build.rs",
+    crate = "build_script_build",
+    features = [
+        "default",
+        "derive",
+        "serde_derive",
+        "std",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+    },
+)
+
+buildscript_run(
+    name = "serde-1.0.228-build-script-run",
+    package_name = "serde",
+    buildscript_rule = ":serde-1.0.228-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+    },
+    features = [
+        "default",
+        "derive",
+        "serde_derive",
+        "std",
+    ],
+    version = "1.0.228",
+)
+
+http_archive(
+    name = "unicode-ident-1.0.19.crate",
+    sha256 = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d",
+    strip_prefix = "unicode-ident-1.0.19",
+    urls = ["https://static.crates.io/crates/unicode-ident/1.0.19/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "unicode-ident-1.0.19",
+    visibility = ["PUBLIC"],
+    srcs = [":unicode-ident-1.0.19.crate"],
+    edition = "2018",
+    crate_root = "unicode-ident-1.0.19.crate/src/lib.rs",
+    crate = "unicode-ident",
+    deps = [],
+    features = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "19",
+    },
+)
+
+http_archive(
+    name = "ryu-1.0.20.crate",
+    sha256 = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f",
+    strip_prefix = "ryu-1.0.20",
+    urls = ["https://static.crates.io/crates/ryu/1.0.20/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "ryu-1.0.20",
+    visibility = ["PUBLIC"],
+    srcs = [":ryu-1.0.20.crate"],
+    edition = "2018",
+    crate_root = "ryu-1.0.20.crate/src/lib.rs",
+    crate = "ryu",
+    deps = [],
+    features = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "20",
+    },
+)
+
+http_archive(
+    name = "itoa-1.0.15.crate",
+    sha256 = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c",
+    strip_prefix = "itoa-1.0.15",
+    urls = ["https://static.crates.io/crates/itoa/1.0.15/download"],
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "itoa-1.0.15",
+    visibility = ["PUBLIC"],
+    srcs = [":itoa-1.0.15.crate"],
+    edition = "2018",
+    crate_root = "itoa-1.0.15.crate/src/lib.rs",
+    crate = "itoa",
+    deps = [],
+    features = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "15",
+    },
 )
 
 http_archive(
@@ -43,94 +360,52 @@ rust_library(
         ":serde-1.0.228",
         ":serde_core-1.0.228",
     ],
-)
-
-http_archive(
-    name = "itoa-1.0.15.crate",
-    sha256 = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c",
-    strip_prefix = "itoa-1.0.15",
-    urls = ["https://static.crates.io/crates/itoa/1.0.15/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "itoa-1.0.15",
-    visibility = ["PUBLIC"],
-    srcs = [":itoa-1.0.15.crate"],
-    edition = "2018",
-    crate_root = "itoa-1.0.15.crate/src/lib.rs",
-    crate = "itoa",
-    deps = [],
-)
-
-http_archive(
-    name = "serde-1.0.228.crate",
-    sha256 = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e",
-    strip_prefix = "serde-1.0.228",
-    urls = ["https://static.crates.io/crates/serde/1.0.228/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "serde-1.0.228",
-    visibility = ["PUBLIC"],
-    srcs = [":serde-1.0.228.crate"],
-    edition = "2021",
-    crate_root = "serde-1.0.228.crate/src/lib.rs",
-    crate = "serde",
-    deps = [
-        ":serde_core-1.0.228",
-        ":serde_derive-1.0.228",
+    features = [
+        "default",
+        "std",
     ],
-)
-
-http_archive(
-    name = "memchr-2.7.6.crate",
-    sha256 = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273",
-    strip_prefix = "memchr-2.7.6",
-    urls = ["https://static.crates.io/crates/memchr/2.7.6/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "memchr-2.7.6",
-    visibility = ["PUBLIC"],
-    srcs = [":memchr-2.7.6.crate"],
-    edition = "2021",
-    crate_root = "memchr-2.7.6.crate/src/lib.rs",
-    crate = "memchr",
-    deps = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "145",
+        "OUT_DIR": "$(location :serde_json-1.0.145-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :serde_json-1.0.145-build-script-run[rustc_flags])"],
 )
 
 rust_binary(
-    name = "proc-macro-dep",
+    name = "serde_json-1.0.145-build-script-build",
     visibility = ["PUBLIC"],
-    srcs = glob(["src/*.rs"]),
-    edition = "2024",
+    srcs = [":serde_json-1.0.145.crate"],
+    edition = "2021",
     deps = [
+        ":itoa-1.0.15",
+        ":memchr-2.7.6",
+        ":ryu-1.0.20",
         ":serde-1.0.228",
-        ":serde_json-1.0.145",
+        ":serde_core-1.0.228",
     ],
-    crate_root = "src/main.rs",
-    crate = "proc-macro-dep",
+    crate_root = "serde_json-1.0.145.crate/build.rs",
+    crate = "build_script_build",
+    features = [
+        "default",
+        "std",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "145",
+    },
 )
 
-http_archive(
-    name = "ryu-1.0.20.crate",
-    sha256 = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f",
-    strip_prefix = "ryu-1.0.20",
-    urls = ["https://static.crates.io/crates/ryu/1.0.20/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "ryu-1.0.20",
-    visibility = ["PUBLIC"],
-    srcs = [":ryu-1.0.20.crate"],
-    edition = "2018",
-    crate_root = "ryu-1.0.20.crate/src/lib.rs",
-    crate = "ryu",
-    deps = [],
+buildscript_run(
+    name = "serde_json-1.0.145-build-script-run",
+    package_name = "serde_json",
+    buildscript_rule = ":serde_json-1.0.145-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "145",
+    },
+    features = [
+        "default",
+        "std",
+    ],
+    version = "1.0.145",
 )
 
 http_archive(
@@ -149,81 +424,45 @@ rust_library(
     crate_root = "serde_core-1.0.228.crate/src/lib.rs",
     crate = "serde_core",
     deps = [":serde_derive-1.0.228"],
-)
-
-http_archive(
-    name = "quote-1.0.41.crate",
-    sha256 = "ce25767e7b499d1b604768e7cde645d14cc8584231ea6b295e9c9eb22c02e1d1",
-    strip_prefix = "quote-1.0.41",
-    urls = ["https://static.crates.io/crates/quote/1.0.41/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "quote-1.0.41",
-    visibility = ["PUBLIC"],
-    srcs = [":quote-1.0.41.crate"],
-    edition = "2018",
-    crate_root = "quote-1.0.41.crate/src/lib.rs",
-    crate = "quote",
-    deps = [":proc-macro2-1.0.101"],
-)
-
-http_archive(
-    name = "unicode-ident-1.0.19.crate",
-    sha256 = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d",
-    strip_prefix = "unicode-ident-1.0.19",
-    urls = ["https://static.crates.io/crates/unicode-ident/1.0.19/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "unicode-ident-1.0.19",
-    visibility = ["PUBLIC"],
-    srcs = [":unicode-ident-1.0.19.crate"],
-    edition = "2018",
-    crate_root = "unicode-ident-1.0.19.crate/src/lib.rs",
-    crate = "unicode-ident",
-    deps = [],
-)
-
-http_archive(
-    name = "syn-2.0.106.crate",
-    sha256 = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6",
-    strip_prefix = "syn-2.0.106",
-    urls = ["https://static.crates.io/crates/syn/2.0.106/download"],
-    visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "syn-2.0.106",
-    visibility = ["PUBLIC"],
-    srcs = [":syn-2.0.106.crate"],
-    edition = "2021",
-    crate_root = "syn-2.0.106.crate/src/lib.rs",
-    crate = "syn",
-    deps = [
-        ":proc-macro2-1.0.101",
-        ":quote-1.0.41",
-        ":unicode-ident-1.0.19",
+    features = [
+        "result",
+        "std",
     ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+        "OUT_DIR": "$(location :serde_core-1.0.228-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :serde_core-1.0.228-build-script-run[rustc_flags])"],
 )
 
-http_archive(
-    name = "proc-macro2-1.0.101.crate",
-    sha256 = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de",
-    strip_prefix = "proc-macro2-1.0.101",
-    urls = ["https://static.crates.io/crates/proc-macro2/1.0.101/download"],
+rust_binary(
+    name = "serde_core-1.0.228-build-script-build",
     visibility = ["PUBLIC"],
-)
-
-rust_library(
-    name = "proc-macro2-1.0.101",
-    visibility = ["PUBLIC"],
-    srcs = [":proc-macro2-1.0.101.crate"],
+    srcs = [":serde_core-1.0.228.crate"],
     edition = "2021",
-    crate_root = "proc-macro2-1.0.101.crate/src/lib.rs",
-    crate = "proc-macro2",
-    deps = [":unicode-ident-1.0.19"],
+    deps = [":serde_derive-1.0.228"],
+    crate_root = "serde_core-1.0.228.crate/build.rs",
+    crate = "build_script_build",
+    features = [
+        "result",
+        "std",
+    ],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+    },
+)
+
+buildscript_run(
+    name = "serde_core-1.0.228-build-script-run",
+    package_name = "serde_core",
+    buildscript_rule = ":serde_core-1.0.228-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "228",
+    },
+    features = [
+        "result",
+        "std",
+    ],
+    version = "1.0.228",
 )
 

@@ -18,3 +18,14 @@ The main goals for this project are
 
 - [ ] Ability to mark a proc-macros as "sandboxed", so we won't need to re-run it if the inputs did not change.
 - [ ] Ability to explicitly name inputes to a build-script (files/environment variables) so we don't need to re-run it if the inputs did not change
+
+
+
+## Progress
+
+
+- [x] Simple no dependency bin
+- [x] Simple single dependency bin
+- [x] Simple no dependency build-script
+- [x] Proc macro dependency bin
+- [ ] Simple workspace

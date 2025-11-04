@@ -1,3 +1,8 @@
+load(
+    "@prelude//rust:cargo_buildscript.bzl",
+    "buildscript_run",
+)
+
 rust_binary(
     name = "simple-no-deps-bin",
     visibility = ["PUBLIC"],
@@ -6,5 +11,9 @@ rust_binary(
     deps = [],
     crate_root = "src/main.rs",
     crate = "simple-no-deps-bin",
+    features = [],
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "0",
+    },
 )
 

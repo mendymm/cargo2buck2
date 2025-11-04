@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "basic-build-script"
+name = "bin-with-build-rs"
 version = "0.1.0"

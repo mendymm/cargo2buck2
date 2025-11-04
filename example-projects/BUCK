@@ -13,8 +13,13 @@ exec_test(
 
 
 exec_test(
-    name = "basic-build-script",
-    bin = "//example-projects/basic-build-script:basic-build-script"
+    name = "bin-with-build-rs",
+    bin = "//example-projects/bin-with-build-rs:bin-with-build-rs"
+)
+
+exec_test(
+    name = "proc-macro-dep",
+    bin = "//example-projects/proc-macro-dep:proc-macro-dep"
 )
 
 

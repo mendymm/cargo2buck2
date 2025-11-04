@@ -386,7 +386,9 @@ dependencies = [
  "camino",
  "cargo",
  "serde",
+ "serde_json",
  "serde_starlark",
+ "toml",
 ]
 
 [[package]]

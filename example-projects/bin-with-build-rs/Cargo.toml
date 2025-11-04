@@ -1,0 +1,10 @@
+[package]
+name = "bin-with-build-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+
+[package.metadata.cargo2buck2]
+read_env_vars_from_build_script = ["MY_VAR"]

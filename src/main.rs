@@ -1,4 +1,7 @@
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 
 use cargo::{
     GlobalContext,
@@ -11,11 +14,16 @@ use cargo::{
 };
 use serde::Serialize;
 
+use crate::custom_metadata::CustomMetadata;
+
+mod custom_metadata;
+
 fn main() {
     for path in [
-        "example-projects/simple-no-deps-bin",
-        "example-projects/simple-single-dep-bin",
-        "example-projects/basic-build-script",
+        "/home/mendy/code/cargo2buck2/example-projects/simple-no-deps-bin",
+        "/home/mendy/code/cargo2buck2/example-projects/simple-single-dep-bin",
+        "/home/mendy/code/cargo2buck2/example-projects/bin-with-build-rs",
+        "/home/mendy/code/cargo2buck2/example-projects/proc-macro-dep",
     ] {
         buckify_workspace(&Path::new(path).canonicalize().unwrap());
     }
@@ -23,6 +31,10 @@ fn main() {
 
 fn buckify_workspace(ws_path: &Path) {
     let mut buck_file = BuckFile::new();
+    buck_file.add_rule(Load(
+        "@prelude//rust:cargo_buildscript.bzl".to_string(),
+        "buildscript_run".to_string(),
+    ));
 
     let gctx = GlobalContext::default().unwrap();
 
@@ -51,7 +63,15 @@ fn buckify_workspace(ws_path: &Path) {
     let resolved_workspace = resolved.workspace_resolve.unwrap();
 
     for pkg in resolved.pkg_set.packages() {
-        // assert_eq!(pkg.targets().len(), 1);
+        let _metadata: CustomMetadata = match pkg.manifest().custom_metadata() {
+            Some(custom_meta) => {
+                let cargo2buck2 = custom_meta.get("cargo2buck2");
+                cargo2buck2
+                    .map(|v| v.to_owned().try_into::<CustomMetadata>().unwrap())
+                    .unwrap_or_default()
+            }
+            None => CustomMetadata::default(),
+        };
         for target in pkg.targets() {
             let crate_root = target
                 .src_path()
@@ -62,16 +82,18 @@ fn buckify_workspace(ws_path: &Path) {
                 .to_str()
                 .unwrap()
                 .to_string();
+            let version = pkg.package_id().version();
+
+            let mut cargo_env = BTreeMap::new();
+            cargo_env.insert(
+                "CARGO_PKG_VERSION_PATCH".to_string(),
+                version.patch.to_string(),
+            );
 
             match target.kind() {
                 TargetKind::Lib(crate_types) => {
                     assert_eq!(crate_types.len(), 1);
                     let crate_type = &crate_types[0];
-                    let lib_name = format!(
-                        "{}-{}-{crate_type}",
-                        pkg.package_id().name(),
-                        pkg.package_id().version()
-                    );
 
                     buck_file.add_rule(HttpArchive {
                         name: pkg.package_id().tarball_name(),
@@ -97,6 +119,25 @@ fn buckify_workspace(ws_path: &Path) {
                         CrateType::Cdylib => todo!(),
                         CrateType::Staticlib => todo!(),
                         CrateType::ProcMacro => {
+                            let mut env = cargo_env.clone();
+                            if pkg.has_custom_build() {
+                                env.insert(
+                                    "OUT_DIR".to_string(),
+                                    format!(
+                                        "$(location :{}-{}-build-script-run[out_dir])",
+                                        pkg.name(),
+                                        pkg.version()
+                                    ),
+                                );
+                            }
+                            let rustc_flags = match pkg.has_custom_build() {
+                                true => Some(vec![format!(
+                                    "@$(location :{}[rustc_flags])",
+                                    format!("{}-{}-build-script-run", pkg.name(), pkg.version()),
+                                )]),
+                                false => None,
+                            };
+
                             buck_file.add_rule(RustLibrary {
                                 name: format!("{}-{}", pkg.name(), pkg.version()),
                                 edition: target.edition().to_string(),
@@ -115,13 +156,36 @@ fn buckify_workspace(ws_path: &Path) {
                                         format!(":{}-{}", dep_id.name(), dep_id.version())
                                     })
                                     .collect::<Vec<_>>(),
+                                features: resolved_workspace
+                                    .features(pkg.package_id())
+                                    .iter()
+                                    .map(|s| s.to_string())
+                                    .collect(),
+                                env,
+                                rustc_flags,
                             });
                         }
                         CrateType::Other(_) => todo!(),
                         CrateType::Lib => {
-                            // for dep in resolved_workspace.deps(pkg.package_id()){
-                            //     dbg!(dep);
-                            // }
+                            let mut env = cargo_env.clone();
+                            if pkg.has_custom_build() {
+                                env.insert(
+                                    "OUT_DIR".to_string(),
+                                    format!(
+                                        "$(location :{}-{}-build-script-run[out_dir])",
+                                        pkg.name(),
+                                        pkg.version()
+                                    ),
+                                );
+                            }
+                            let rustc_flags = match pkg.has_custom_build() {
+                                true => Some(vec![format!(
+                                    "@$(location :{}[rustc_flags])",
+                                    format!("{}-{}-build-script-run", pkg.name(), pkg.version()),
+                                )]),
+                                false => None,
+                            };
+
                             buck_file.add_rule(RustLibrary {
                                 name: format!("{}-{}", pkg.name(), pkg.version()),
                                 edition: target.edition().to_string(),
@@ -140,16 +204,34 @@ fn buckify_workspace(ws_path: &Path) {
                                         format!(":{}-{}", dep_id.name(), dep_id.version())
                                     })
                                     .collect::<Vec<_>>(),
+                                features: resolved_workspace
+                                    .features(pkg.package_id())
+                                    .iter()
+                                    .map(|s| s.to_string())
+                                    .collect(),
+                                env,
+                                rustc_flags,
                             });
                         }
                     }
                 }
                 TargetKind::Bin => {
+                    let mut env = cargo_env.clone();
+                    if pkg.has_custom_build() {
+                        env.insert(
+                            "OUT_DIR".to_string(),
+                            format!(
+                                "$(location :{}-{}-build-script-run[out_dir])",
+                                pkg.name(),
+                                pkg.version()
+                            ),
+                        );
+                    }
                     buck_file.add_rule(RustBinary {
                         name: target.name().to_string(),
                         edition: target.edition().to_string(),
                         visibility: vec!["PUBLIC".to_string()],
-                        srcs: Glob(BTreeSet::from_iter(["src/*.rs".to_string()])),
+                        srcs: Srcs::Glob(Glob(BTreeSet::from_iter(["src/*.rs".to_string()]))),
                         deps: resolved_workspace
                             .deps(pkg.package_id())
                             .map(|(dep_id, _dep)| {
@@ -158,12 +240,61 @@ fn buckify_workspace(ws_path: &Path) {
                             .collect::<Vec<_>>(),
                         crate_root,
                         crate_name: pkg.name().to_string(),
+                        features: resolved_workspace
+                            .features(pkg.package_id())
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect(),
+                        env,
                     });
                 }
                 // TODO: impl these
                 TargetKind::ExampleBin | TargetKind::Bench | TargetKind::Test => (),
                 TargetKind::ExampleLib(_crate_types) => todo!(),
-                TargetKind::CustomBuild => {}
+                TargetKind::CustomBuild => {
+                    let build_script_rule =
+                        format!("{}-{}-build-script-build", pkg.name(), pkg.version());
+                    let srcs = match pkg.package_id().source_id().is_path() {
+                        true => Srcs::Plain(vec!["build.rs".to_string()]),
+                        false => Srcs::Plain(vec![format!(":{}", pkg.package_id().tarball_name())]),
+                    };
+                    let crate_root = match pkg.package_id().source_id().is_path() {
+                        true => "build.rs".to_string(),
+                        false => format!("{}/{}", pkg.package_id().tarball_name(), crate_root),
+                    };
+                    buck_file.add_rule(RustBinary {
+                        name: build_script_rule.clone(),
+                        crate_name: "build_script_build".to_string(),
+                        visibility: vec!["PUBLIC".to_string()],
+                        edition: target.edition().to_string(),
+                        srcs,
+                        crate_root,
+                        deps: resolved_workspace
+                            .deps(pkg.package_id())
+                            .map(|(dep_id, _dep)| {
+                                format!(":{}-{}", dep_id.name(), dep_id.version())
+                            })
+                            .collect::<Vec<_>>(),
+                        features: resolved_workspace
+                            .features(pkg.package_id())
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect(),
+                        env: cargo_env.clone(),
+                    });
+                    buck_file.add_rule(BuildScriptRun {
+                        buildscript_rule: format!(":{build_script_rule}"),
+                        name: format!("{}-{}-build-script-run", pkg.name(), pkg.version()),
+                        env: cargo_env.clone(),
+                        features: resolved_workspace
+                            .features(pkg.package_id())
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect(),
+                        package_name: pkg.name().to_string(),
+                        version: pkg.version().to_string(),
+                    });
+                }
             }
         }
     }
@@ -206,16 +337,30 @@ impl BuckFile {
 pub struct RustBinary {
     pub name: String,
     pub visibility: Vec<String>,
-    pub srcs: Glob,
+
+    pub srcs: Srcs,
     pub edition: String,
     pub deps: Vec<String>,
     pub crate_root: String,
     #[serde(rename = "crate")]
     pub crate_name: String,
+    pub features: Vec<String>,
+    pub env: BTreeMap<String, String>,
 }
 #[derive(Serialize)]
 #[serde(rename = "glob")]
 pub struct Glob(pub BTreeSet<String>);
+
+#[derive(Serialize)]
+#[serde(rename = "load")]
+pub struct Load(pub String, pub String);
+
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum Srcs {
+    Glob(Glob),
+    Plain(Vec<String>),
+}
 
 #[derive(Serialize)]
 #[serde(rename = "rust_library")]
@@ -230,6 +375,10 @@ pub struct RustLibrary {
     #[serde(skip_serializing_if = "is_false")]
     pub proc_macro: bool,
     pub deps: Vec<String>,
+    pub features: Vec<String>,
+    pub env: BTreeMap<String, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rustc_flags: Option<Vec<String>>,
 }
 
 fn is_false(b: &bool) -> bool {
@@ -244,4 +393,15 @@ pub struct HttpArchive {
     pub strip_prefix: String,
     pub urls: Vec<String>,
     pub visibility: Vec<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename = "buildscript_run")]
+pub struct BuildScriptRun {
+    pub name: String,
+    pub package_name: String,
+    pub buildscript_rule: String,
+    pub env: BTreeMap<String, String>,
+    pub features: Vec<String>,
+    pub version: String,
 }
