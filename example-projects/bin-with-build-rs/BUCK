@@ -13,6 +13,7 @@ rust_binary(
     crate = "bin-with-build-rs",
     features = [],
     env = {
+        "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_PATCH": "0",
         "OUT_DIR": "$(location :bin-with-build-rs-0.1.0-build-script-run[out_dir])",
     },
@@ -28,6 +29,7 @@ rust_binary(
     crate = "build_script_build",
     features = [],
     env = {
+        "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_PATCH": "0",
     },
 )
@@ -37,6 +39,7 @@ buildscript_run(
     package_name = "bin-with-build-rs",
     buildscript_rule = ":bin-with-build-rs-0.1.0-build-script-build",
     env = {
+        "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_PATCH": "0",
     },
     features = [],

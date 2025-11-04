@@ -22,8 +22,7 @@ exec_test(
     bin = "//example-projects/proc-macro-dep:proc-macro-dep"
 )
 
-
-# exec_test(
-#     name = "simple-no-deps-bin",
-#     bin = "//example-projects/simple-no-deps-bin:simple-no-deps-bin"
-# )
+exec_test(
+    name = "renamed-dep",
+    bin = "//example-projects/renamed-dep:renamed-dep"
+)

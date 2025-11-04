@@ -20,10 +20,11 @@ mod custom_metadata;
 
 fn main() {
     for path in [
-        "/home/mendy/code/cargo2buck2/example-projects/simple-no-deps-bin",
-        "/home/mendy/code/cargo2buck2/example-projects/simple-single-dep-bin",
-        "/home/mendy/code/cargo2buck2/example-projects/bin-with-build-rs",
-        "/home/mendy/code/cargo2buck2/example-projects/proc-macro-dep",
+        "example-projects/simple-no-deps-bin",
+        "example-projects/proc-macro-dep",
+        "example-projects/simple-single-dep-bin",
+        "example-projects/bin-with-build-rs",
+        "example-projects/renamed-dep",
     ] {
         buckify_workspace(&Path::new(path).canonicalize().unwrap());
     }
@@ -43,7 +44,6 @@ fn buckify_workspace(ws_path: &Path) {
         .members()
         .map(|p| p.package_id().to_spec())
         .collect::<Vec<_>>();
-
     let mut target_data = RustcTargetData::new(&ws, &[CompileKind::Host]).unwrap();
 
     let cli_features = CliFeatures::from_command_line(&[], false, true).unwrap();
@@ -55,7 +55,7 @@ fn buckify_workspace(ws_path: &Path) {
         &cli_features,
         &specs,
         cargo::core::resolver::HasDevUnits::Yes,
-        cargo::core::resolver::ForceAllTargets::No,
+        cargo::core::resolver::ForceAllTargets::Yes,
         false,
     )
     .unwrap();
@@ -72,6 +72,35 @@ fn buckify_workspace(ws_path: &Path) {
             }
             None => CustomMetadata::default(),
         };
+
+        let deps = resolved_workspace
+            .deps(pkg.package_id())
+            .filter_map(|(dep_id, deps)| {
+                let dep = deps.iter().next().unwrap();
+                if dep.explicit_name_in_toml().is_none() {
+                    Some(format!(":{}-{}", dep_id.name(), dep_id.version()))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        let named_deps = resolved_workspace
+            .deps(pkg.package_id())
+            .filter_map(|(dep_id, deps)| {
+                let dep = deps.iter().next().unwrap();
+                dep.explicit_name_in_toml().map(|explicit_name_in_toml| {
+                    (
+                        explicit_name_in_toml.to_string(),
+                        format!(":{}-{}", dep_id.name(), dep_id.version()),
+                    )
+                })
+            })
+            .collect::<BTreeMap<_, _>>();
+        let named_deps = match named_deps.is_empty() {
+            true => None,
+            false => Some(named_deps),
+        };
+
         for target in pkg.targets() {
             let crate_root = target
                 .src_path()
@@ -89,28 +118,31 @@ fn buckify_workspace(ws_path: &Path) {
                 "CARGO_PKG_VERSION_PATCH".to_string(),
                 version.patch.to_string(),
             );
+            cargo_env.insert("CARGO_PKG_VERSION".to_string(), version.to_string());
 
             match target.kind() {
                 TargetKind::Lib(crate_types) => {
                     assert_eq!(crate_types.len(), 1);
                     let crate_type = &crate_types[0];
 
-                    buck_file.add_rule(HttpArchive {
-                        name: pkg.package_id().tarball_name(),
-                        sha256: pkg.summary().checksum().unwrap().to_string(),
-                        strip_prefix: pkg
-                            .package_id()
-                            .tarball_name()
-                            .strip_suffix(".crate")
-                            .unwrap()
-                            .to_string(),
-                        urls: vec![format!(
-                            "https://static.crates.io/crates/{}/{}/download",
-                            pkg.package_id().name(),
-                            pkg.package_id().version()
-                        )],
-                        visibility: vec!["PUBLIC".to_string()],
-                    });
+                    if let Some(sha256) = pkg.summary().checksum() {
+                        buck_file.add_rule(HttpArchive {
+                            name: pkg.package_id().tarball_name(),
+                            sha256: sha256.to_string(),
+                            strip_prefix: pkg
+                                .package_id()
+                                .tarball_name()
+                                .strip_suffix(".crate")
+                                .unwrap()
+                                .to_string(),
+                            urls: vec![format!(
+                                "https://static.crates.io/crates/{}/{}/download",
+                                pkg.package_id().name(),
+                                pkg.package_id().version()
+                            )],
+                            visibility: vec!["PUBLIC".to_string()],
+                        });
+                    }
 
                     match crate_type {
                         CrateType::Bin => todo!(),
@@ -150,12 +182,8 @@ fn buckify_workspace(ws_path: &Path) {
                                 ),
                                 crate_name: pkg.name().to_string(),
                                 proc_macro: true,
-                                deps: resolved_workspace
-                                    .deps(pkg.package_id())
-                                    .map(|(dep_id, _dep)| {
-                                        format!(":{}-{}", dep_id.name(), dep_id.version())
-                                    })
-                                    .collect::<Vec<_>>(),
+                                deps: deps.clone(),
+                                named_deps: named_deps.clone(),
                                 features: resolved_workspace
                                     .features(pkg.package_id())
                                     .iter()
@@ -198,12 +226,8 @@ fn buckify_workspace(ws_path: &Path) {
                                 ),
                                 crate_name: pkg.name().to_string(),
                                 proc_macro: false,
-                                deps: resolved_workspace
-                                    .deps(pkg.package_id())
-                                    .map(|(dep_id, _dep)| {
-                                        format!(":{}-{}", dep_id.name(), dep_id.version())
-                                    })
-                                    .collect::<Vec<_>>(),
+                                deps: deps.clone(),
+                                named_deps: named_deps.clone(),
                                 features: resolved_workspace
                                     .features(pkg.package_id())
                                     .iter()
@@ -232,12 +256,8 @@ fn buckify_workspace(ws_path: &Path) {
                         edition: target.edition().to_string(),
                         visibility: vec!["PUBLIC".to_string()],
                         srcs: Srcs::Glob(Glob(BTreeSet::from_iter(["src/*.rs".to_string()]))),
-                        deps: resolved_workspace
-                            .deps(pkg.package_id())
-                            .map(|(dep_id, _dep)| {
-                                format!(":{}-{}", dep_id.name(), dep_id.version())
-                            })
-                            .collect::<Vec<_>>(),
+                        deps: deps.clone(),
+                        named_deps: named_deps.clone(),
                         crate_root,
                         crate_name: pkg.name().to_string(),
                         features: resolved_workspace
@@ -250,7 +270,8 @@ fn buckify_workspace(ws_path: &Path) {
                 }
                 // TODO: impl these
                 TargetKind::ExampleBin | TargetKind::Bench | TargetKind::Test => (),
-                TargetKind::ExampleLib(_crate_types) => todo!(),
+                //  => todo!(),
+                TargetKind::ExampleLib(_crate_types) => (),
                 TargetKind::CustomBuild => {
                     let build_script_rule =
                         format!("{}-{}-build-script-build", pkg.name(), pkg.version());
@@ -269,12 +290,8 @@ fn buckify_workspace(ws_path: &Path) {
                         edition: target.edition().to_string(),
                         srcs,
                         crate_root,
-                        deps: resolved_workspace
-                            .deps(pkg.package_id())
-                            .map(|(dep_id, _dep)| {
-                                format!(":{}-{}", dep_id.name(), dep_id.version())
-                            })
-                            .collect::<Vec<_>>(),
+                        deps: deps.clone(),
+                        named_deps: named_deps.clone(),
                         features: resolved_workspace
                             .features(pkg.package_id())
                             .iter()
@@ -340,6 +357,9 @@ pub struct RustBinary {
 
     pub srcs: Srcs,
     pub edition: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub named_deps: Option<BTreeMap<String, String>>,
+
     pub deps: Vec<String>,
     pub crate_root: String,
     #[serde(rename = "crate")]
@@ -375,6 +395,8 @@ pub struct RustLibrary {
     #[serde(skip_serializing_if = "is_false")]
     pub proc_macro: bool,
     pub deps: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub named_deps: Option<BTreeMap<String, String>>,
     pub features: Vec<String>,
     pub env: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]

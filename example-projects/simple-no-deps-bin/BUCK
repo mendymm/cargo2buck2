@@ -13,6 +13,7 @@ rust_binary(
     crate = "simple-no-deps-bin",
     features = [],
     env = {
+        "CARGO_PKG_VERSION": "0.1.0",
         "CARGO_PKG_VERSION_PATCH": "0",
     },
 )

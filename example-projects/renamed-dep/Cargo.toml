@@ -1,0 +1,7 @@
+[package]
+name = "renamed-dep"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+heck_renamed = { package = "heck", version = "0.5" }

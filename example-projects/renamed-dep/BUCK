@@ -4,13 +4,16 @@ load(
 )
 
 rust_binary(
-    name = "simple-single-dep-bin",
+    name = "renamed-dep",
     visibility = ["PUBLIC"],
     srcs = glob(["src/*.rs"]),
     edition = "2024",
-    deps = [":heck-0.5.0"],
+    named_deps = {
+        "heck_renamed": ":heck-0.5.0",
+    },
+    deps = [],
     crate_root = "src/main.rs",
-    crate = "simple-single-dep-bin",
+    crate = "renamed-dep",
     features = [],
     env = {
         "CARGO_PKG_VERSION": "0.1.0",

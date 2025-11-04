@@ -23,11 +23,18 @@ The main goals for this project are
 ## Progress
 
 
+Example projects
 - [x] [Simple no dependency bin](./example-projects/simple-no-deps-bin/)
 - [x] [Simple single dependency bin](./example-projects/simple-single-dep-bin/)
 - [x] [Simple no dependency build-script](./example-projects/bin-with-build-rs/)
 - [x] [Proc macro dependency bin](./example-projects/proc-macro-dep/)
 - [ ] Simple workspace
+
+
+Features
+- [x] Package renaming (https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#renaming-dependencies-in-cargotoml)
+- [ ] Cargo env vars (https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-crates)
+
 
 
 ## Acknowledgements
